@@ -1,6 +1,12 @@
 # Prerequisites
 *.d
 
+# CMake
+cmake-build-debug
+
+# JetBrains
+.idea
+
 # Object files
 *.o
 *.ko
