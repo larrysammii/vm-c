@@ -14,6 +14,7 @@ const int program[] = {
   PSH, 5,
   PSH, 6,
   ADD,
+  SET, 1, 5,
   POP,
   HLT
 };
@@ -27,57 +28,67 @@ typedef enum {
   NUM_OF_REGISTERS
 } Registers;
 
+const char* register_names[] = {
+  "A", "B", "C", "D", "E", "F", "PC", "SP"
+};
 
 int stack[256];
 int registers[NUM_OF_REGISTERS];
 
-// Instruction Array
-int *instructions;
-
-// Number of instructions to do
-int instruction_count = 0;
-
 // Get PC and SP
-#define SP (registers[SP])
-#define PC (registers[PC])
+#define sp (registers[SP])
+#define pc (registers[PC])
 
 // To determine HLT
 bool running = true;
+
+// Fetch current instruction
+int fetch() {
+  return program[pc];
+}
 
 // Evaluating instruction
 void eval(int instruction) {
   switch (instruction) {
   case HLT:
     running = false;
+    printf("Halt.");
     break;
   case PSH:
+    printf("Before PSH: SP is now %d \n", sp);
     // stack pointer now points to the stack above
-    SP++;
+    sp = sp + 1;
+    pc = pc + 1;
+
     // example:
     // program = [ PSH, 5, PSH, 6 ]
     // PSH has an argument eg: 5, hence pc++ to identify the argument.
-    stack[SP] = program[PC++];
+    stack[sp] = program[pc];
     // Now top of stack has the new value.
+    printf("After PSH: SP is now %d \n", stack[sp]);
     break;
   case POP:
     // store value from the stack at a variable first!!!
-    int val = stack[SP--];
 
-    printf("Value Popped %d\n :", val);
+    int val = stack[sp--];
+
+    printf("POP: Value Popped: %d \n", val);
     break;
   case ADD:
     // Pop the top of stack and store
-    int val1 = stack[SP--];
+    int val1 = stack[sp--];
     // Pop and store again
-    int val2 = stack[SP--];
+    int val2 = stack[sp--];
 
     int result = val1 + val2;
 
     // New stack level for the result
-    SP++;
+    sp = sp + 1;
 
     // store the result in new stack level
-    stack[SP] = result;
+    stack[sp] = result;
+
+    printf("ADD value %d & %d. Result: %d\n", val1, val2, result);
 
     break;
   case SET:
@@ -85,20 +96,23 @@ void eval(int instruction) {
     // to assign a value to a register.
     // eg: SET A 0
     // Assign value 0 to register A.
-    registers[instructions[PC + 1]] = instructions[PC + 2];
-    PC += 2;
+
+    registers[program[pc + 1]] = program[pc + 2];
+    printf("SET: Register %s: %d\n", register_names[program[pc - 1]],registers[B]);
+    pc += 2;
     break;
   }
 }
 
-// Fetch current instruction
-int fetch() {
-  return program[PC];
-}
-
 int main() {
+
+  pc = 0;
+  sp = -1;
+
   while (running) {
     eval(fetch());
-    PC++; // Increment program counter on every iter
+    pc++; // Increment program counter on every iter
     }
+
+  return 0;
   }
